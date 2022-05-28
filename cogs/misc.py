@@ -6,10 +6,7 @@ class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print('Registered as {0.user}'.format(self.bot))
-
+    # == MISC COMMANDS ==
     @commands.command()
     async def say(self, context, *args):
         await context.channel.send("{}".format(" ".join(args)))
@@ -21,7 +18,24 @@ class Misc(commands.Cog):
             if (not(member.bot)):
                 print(member)
                 i += 1
-        await context.channel.send(i)
+        print(i)
+
+    # == DEBUG ==
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print('Registered as {0.user}'.format(self.bot))
+
+    @commands.command()
+    async def debug_print_ids(self, context):
+        for member in self.bot.get_all_members():
+            if (not(member.bot)):
+                print('User: {}, {}'.format(member.name, member.id))
+
+    @commands.command()
+    async def debug_print_activities(self, context):
+        for member in self.bot.get_all_members():
+            if (not(member.bot)):
+                print('User: {}, {}'.format(member.name, member.activities))
         
 def setup(bot):
     bot.add_cog(Misc(bot))
