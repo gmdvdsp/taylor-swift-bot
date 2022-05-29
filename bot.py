@@ -6,6 +6,9 @@ from discord.ext import commands
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$', intents=intents)
 
+# Global attributes
+bot.data = {}
+
 @bot.command()
 async def load(context, extension):
     bot.load_extension(f'cogs.{extension}')
