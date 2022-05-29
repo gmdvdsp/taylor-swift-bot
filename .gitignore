@@ -1,3 +1,5 @@
 bot-env/
 cogs/__pycache__/misc.cpython-310.pyc
 cogs/__pycache__/taylor.cpython-310.pyc
+cogs/classes/__pycache__/member_data.cpython-310.pyc
+cogs/__pycache__/__init__.cpython-310.pyc

@@ -1,9 +1,7 @@
-import discord
 import os
-from discord.ext import tasks, commands
+import discord
+from discord.ext import commands
 # token: NTY5MjE1NDg2MDc2NjQ5NDg1.GkhadZ.Jn5r-8Qr3E-_OIC2wAIYqCF5ts3FnZDhQgn9fs
-
-member_data = {}
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$', intents=intents)
