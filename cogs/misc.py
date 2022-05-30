@@ -8,7 +8,9 @@ class Misc(commands.Cog):
     # == MISC COMMANDS ==
     @commands.command()
     async def say(self, context, *args):
-        await context.channel.send("{}".format(" ".join(args)))
+        embed = discord.Embed(description=("{}".format(" ".join(args))), color=0xFF0000)
+        embed.set_author(name="Taylor Swift", icon_url="https://i.imgur.com/6DSv0Su.jpg")
+        await context.channel.send(embed=embed)
 
     @commands.command()
     async def count_users(self, context):
@@ -23,7 +25,9 @@ class Misc(commands.Cog):
     @commands.command()
     async def prefix(self, context, arg):
         self.bot.command_prefix = arg
-        await context.channel.send('Changed global command prefix to: {}'.format(arg))
+        embed = discord.Embed(description=("I've changed the global command prefix to: {}".format(arg)), color=0xFF0000)
+        embed.set_author(name="Taylor Swift", icon_url="https://i.imgur.com/6DSv0Su.jpg")
+        await context.channel.send(embed=embed)
 
     # == DEBUG ==
     @commands.Cog.listener()

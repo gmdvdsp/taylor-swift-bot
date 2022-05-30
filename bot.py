@@ -1,7 +1,5 @@
 import os
 
-from cogs.classes.member_data import Member_data
-
 import discord
 from discord.ext import commands
 # token: NTY5MjE1NDg2MDc2NjQ5NDg1.GkhadZ.Jn5r-8Qr3E-_OIC2wAIYqCF5ts3FnZDhQgn9fs
@@ -21,6 +19,11 @@ class Bot(commands.Bot):
     async def unload(context, extension):
         bot.unload_extension(f'cogs.{extension}')
     '''
+
+    def add_entry(self, member, stat, arg):
+        if (not(member.id in self.data)):
+            self.data[member.id] = {}
+        self.data[member.id][stat] = arg
 
 bot = Bot()
 
