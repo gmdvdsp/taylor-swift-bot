@@ -32,13 +32,13 @@ class Misc(commands.Cog):
         print('Registered as {0.user}'.format(self.bot))
 
     @commands.command()
-    async def dbp_ids(self, context):
+    async def db_ids(self, context):
         for member in self.bot.get_all_members():
             if (not(member.bot)):
                 print('User: {}, {}'.format(member.name, member.id))
 
     @commands.command()
-    async def dbp_members(self, context):
+    async def db_members(self, context):
         for member in self.bot.get_all_members():
             if (not(member.bot)):
                 print('User: {}, {}'.format(member.name, member.activities))
