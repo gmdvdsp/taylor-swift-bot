@@ -6,7 +6,6 @@ import discord
 from discord.ext import tasks, commands
 
 class Music_detection(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
         # Must be this many seconds after last exposure for user to get re-exposed (in seconds). DEFAULT: 86400
@@ -44,12 +43,12 @@ class Music_detection(commands.Cog):
         self.bot.data[member.id] = Member_data()
 
     async def send_embed(self, context, spotify):
-        embed = discord.Embed(title="Thank you!", description=("{}\n\n 🚨 askl;dfjasdg swifteie!!~ 🌟 omg swiftie alert!!! 😩 🚨 we STAN `11 ~!>>>>>> SWIFTIE".format(context.author.mention)), color=0xFF0000)
+        embed = discord.Embed(title="Thank you!", description=("🚨 askl;dfjasdg swifteie!!~ 🌟 omg swiftie alert!!! 😩 🚨 we STAN `11 ~!>>>>>> SWIFTIE"), color=0xFF0000)
         embed.set_author(name="Taylor Swift", icon_url="https://i.imgur.com/6DSv0Su.jpg")
         embed.set_thumbnail(url=spotify.album_cover_url)
         embed.add_field(name="I've recorded you listening to me...", value=("{} times!".format(self.bot.data[context.author.id].listens)), inline=False)
         embed.add_field(name="Make sure you stream!", value=(spotify.title + " - " + spotify.album), inline=False)
-        await context.channel.send(embed=embed)
+        await context.channel.send(content="{}!".format(context.author.mention) ,embed=embed)
 
     # == CONFIG ==
     '''
