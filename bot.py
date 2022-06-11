@@ -10,7 +10,7 @@ class Bot(commands.Bot):
 
     def __init__(self):
         super().__init__(command_prefix="ts ", intents=discord.Intents.all())
-        self.data = {}
+        self.user_data = {}
 
     '''
     In a practical environment, these are never being used.
@@ -30,9 +30,9 @@ class Bot(commands.Bot):
             return def_user_stats
 
         for member in self.get_all_members():
-            if (not(member.id in self.data)):
-                self.data[member.id] = {}
-            self.data[member.id] = default_entries()
+            if (not(member.id in self.user_data)):
+                self.user_data[member.id] = {}
+            self.user_data[member.id] = default_entries()
 
     # == HELPERS == 
     def embed_skeleton(self, arg):
@@ -41,19 +41,19 @@ class Bot(commands.Bot):
         return embed
 
     def update_entry(self, member, arg, val):
-        if (not(member.id in self.data)):
+        if (not(member.id in self.user_data)):
             return
-        if (arg in self.data[member.id]):
+        if (arg in self.user_data[member.id]):
             print('in base')
-            self.data[member.id][arg] = val
-        elif (arg in self.data[member.id]['configs']):
+            self.user_data[member.id][arg] = val
+        elif (arg in self.user_data[member.id]['configs']):
             print('in config')
-            self.data[member.id]['configs'][arg] = val
+            self.user_data[member.id]['configs'][arg] = val
 
     def get_entry(self, member, arg):
-        if (not(member.id in self.data)):
+        if (not(member.id in self.user_data)):
             return
-        return self.data[member.id].get(arg, self.data[member.id]['configs'].get(arg, None))
+        return self.user_data[member.id].get(arg, self.user_data[member.id]['configs'].get(arg, None))
         
 bot = Bot()
 
