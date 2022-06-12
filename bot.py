@@ -11,6 +11,7 @@ class Bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="ts ", intents=discord.Intents.all())
         self.user_data = {}
+        self.seed_entries()
 
     '''
     In a practical environment, these are never being used.
@@ -23,6 +24,7 @@ class Bot(commands.Bot):
         bot.unload_extension(f'cogs.{extension}')
     '''
 
+    # Boilerplate this
     def seed_entries(self):
         def default_entries():
             def_user_configs = {"mention_on_listen":True}

@@ -42,7 +42,6 @@ class Misc(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('Registered as {0.user}'.format(self.bot))
-        self.bot.seed_entries()
 
     @commands.command()
     async def db_printdata(self, context):
