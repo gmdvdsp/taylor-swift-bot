@@ -5,9 +5,10 @@ import discord
 from discord.ext import commands
 # token: NTY5MjE1NDg2MDc2NjQ5NDg1.GkhadZ.Jn5r-8Qr3E-_OIC2wAIYqCF5ts3FnZDhQgn9fs
 
-class Bot(commands.Bot):
-    AUTHOR_EMBED_URL = "https://i.imgur.com/6DSv0Su.jpg"
+AUTHOR_EMBED_URL = "https://i.imgur.com/6DSv0Su.jpg"
+RED = 0xFF0000
 
+class Bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="ts ", intents=discord.Intents.all())
         self.user_data = {}
@@ -38,8 +39,8 @@ class Bot(commands.Bot):
 
     # == HELPERS == 
     def embed_skeleton(self, arg):
-        embed = discord.Embed(description=arg, color=0xFF0000)
-        embed.set_author(name="Taylor Swift", icon_url=self.AUTHOR_EMBED_URL)
+        embed = discord.Embed(description=arg, color=RED)
+        embed.set_author(name="Taylor Swift", icon_url=AUTHOR_EMBED_URL)
         return embed
 
     def update_entry(self, member, arg, val):
