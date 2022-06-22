@@ -6,28 +6,37 @@ from discord.ext import tasks, commands
 class Starboard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.starboard_data = {}
-        self.seed_entries()
+        self.message_list = []
+        self.config = {}
+        self.seed_config()
 
-    def seed_entries(self):
-        def default_entries():
-            def_user_configs = {"channel":None, "reactions_until_add":1, "emoji":"✨"}
-            return def_user_configs
+    def seed_config(self):
+        def default_configs():
+            def_data = {"channel":None, "reactions_until_add":1, "emoji":"✨"}
+            return def_data
 
-        self.starboard_data = default_entries()
+        self.config = default_configs()
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if ((str(payload.emoji) == self.starboard_data["emoji"]) and (payload.member.id != self.bot.user.id)):
+        if ((str(payload.emoji) == self.config["emoji"]) and (payload.member.id != self.bot.user.id)):
             channel = self.bot.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            if (self.count_nonbot_reactions(message) >= self.starboard_data["reactions_until_add"]):
+            if (self.count_nonbot_reactions(message) >= self.config["reactions_until_add"]):
                 await self.send_starboard(message, channel)
 
     @commands.group()
     async def starboard(self, context):
         if context.invoked_subcommand is None:
             await context.channel.send(embed=self.bot.embed_skeleton("Commands: emoji, channel, count"))
+
+    @starboard.command()
+    async def condense(self, context):
+        for message in self.message_list:
+            sent = await context.channel.send(content=message.content, embed=message.embeds[0])
+            for reaction in message.reactions:
+                sent.add_reaction(reaction)
+        #sent.pin()
 
     @starboard.command()
     async def emoji(self, context):
@@ -42,8 +51,8 @@ class Starboard(commands.Cog):
             return False            
 
         await self.bot.wait_for('raw_reaction_add', timeout=60.0, check=check)
-        self.starboard_data["emoji"] = new_emoji
-        await context.channel.send(embed=self.bot.embed_skeleton("I've changed the starboard reaction emoji to: {}".format(self.starboard_data["emoji"])))
+        self.config["emoji"] = new_emoji
+        await context.channel.send(embed=self.bot.embed_skeleton("I've changed the starboard reaction emoji to: {}".format(self.config["emoji"])))
     
     @starboard.command()
     async def channel(self, context):
@@ -53,12 +62,12 @@ class Starboard(commands.Cog):
             if (message.author == context.author):
                 for channel in self.bot.get_all_channels():
                     if (channel in message.channel_mentions):
-                        self.starboard_data["channel"] = channel
+                        self.config["channel"] = channel
                         return True
             return False            
 
         await self.bot.wait_for('message', timeout=60.0, check=check)
-        await context.channel.send(embed=self.bot.embed_skeleton("I've set the starboard channel to: {}".format(self.starboard_data["channel"].mention)))
+        await context.channel.send(embed=self.bot.embed_skeleton("I've set the starboard channel to: {}".format(self.config["channel"].mention)))
 
     @starboard.command()
     async def count(self, context):
@@ -67,44 +76,44 @@ class Starboard(commands.Cog):
         def check(message):
             if (message.author == context.author):
                 if (re.match("^\d+$", message.content)):
-                    self.starboard_data["reactions_until_add"] = message.content
+                    self.config["reactions_until_add"] = int(message.content)
                     return True
             return False            
 
         await self.bot.wait_for('message', timeout=60.0, check=check)
-        await context.channel.send(embed=self.bot.embed_skeleton("I've set the reactions needed to star a post to: {}".format(self.starboard_data["reactions_until_add"])))
+        await context.channel.send(embed=self.bot.embed_skeleton("I've set the reactions needed to star a post to: {}".format(self.config["reactions_until_add"])))
 
     # == HELPERS ==
     def count_nonbot_reactions(self, message):
         ret = 0
         for emoji in message.reactions:
-            if (self.starboard_data["emoji"] == str(emoji)):
+            if (self.config["emoji"] == str(emoji)):
                 ret = emoji.count
                 if (emoji.me):
-                    ret -= 1
+                    ret = 0
+                return ret
         return ret
 
     async def send_starboard(self, message, original_channel):
-        def process_image():
-            if (message.attachments):
-                return message.attachments[0]
-        
-        def process_embed(arg):
-            if (message.embeds):
-                return message.embeds[0]
-            else: 
-                return arg
-
         embed = discord.Embed(description=message.content, color=RED)
-        embed = process_image()
-        embed = process_embed(embed)
-        
+
+        if (message.attachments):
+            if (message.attachments[0].content_type.startswith("image")):
+                embed.set_image(url=message.attachments[0].url)
+            else:
+                embed.description = message.attachments[0].filename
+
+        if (message.embeds):
+            if (message.embeds[0].video == discord.Embed.Empty):   
+                embed = message.embeds[0]
+
         embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
         embed.add_field(name=u'\u200b', value="[**Click here to jump to this message!**]({})".format(message.jump_url + "\n"))
         embed.set_footer(text="MessageID: {}".format(message.id))
         embed.timestamp = message.created_at
-        sent = await self.starboard_data["channel"].send(content="{} **{}** | {}".format(self.starboard_data["emoji"], self.count_nonbot_reactions(message), original_channel.mention), embed=embed)
-        await sent.add_reaction(self.starboard_data["emoji"])
+        sent = await self.config["channel"].send(content="{} **{}** | {}".format(self.config["emoji"], self.count_nonbot_reactions(message), original_channel.mention), embed=embed)
+        self.message_list.append(sent)
+        await sent.add_reaction(self.config["emoji"])
 
 def setup(bot):
     bot.add_cog(Starboard(bot))

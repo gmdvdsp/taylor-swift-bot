@@ -24,8 +24,7 @@ class Bot(commands.Bot):
     async def unload(context, extension):
         bot.unload_extension(f'cogs.{extension}')
     '''
-
-    # Boilerplate this
+    
     def seed_entries(self):
         def default_entries():
             def_user_configs = {"mention_on_listen":True}
@@ -47,10 +46,8 @@ class Bot(commands.Bot):
         if (not(member.id in self.user_data)):
             return
         if (arg in self.user_data[member.id]):
-            print('in base')
             self.user_data[member.id][arg] = val
         elif (arg in self.user_data[member.id]['configs']):
-            print('in config')
             self.user_data[member.id]['configs'][arg] = val
 
     def get_entry(self, member, arg):
