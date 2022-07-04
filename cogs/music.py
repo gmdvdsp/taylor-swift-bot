@@ -1,11 +1,14 @@
 #from cogs.classes.member_data import Member_data
 
+# BROKEN UNTIL I FINISH THE DATABASE
+
+from calendar import c
 import datetime as time
 
 import discord
 from discord.ext import tasks, commands
 
-class Taylor_detection(commands.Cog):
+class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         # Must be this many seconds after last exposure for user to get re-exposed (in seconds). DEFAULT: 86400
@@ -46,16 +49,29 @@ class Taylor_detection(commands.Cog):
         await context.channel.send(content="{}".format(context.author.mention) ,embed=embed)
 
     # == CONFIG ==
+    @commands.command()
+    async def mention(self, context):
+        embed = await context.channel.send(embed=self.bot.embed_skeleton(("Should I mention you when I see you listening to my songs?")))
+        await embed.add_reaction("😍")
+        await embed.add_reaction("😭")
 
-    #@commands.command()
-    #Can someone who wants to deal with args -> seconds conversion deal with this :sob:
-    #async def set_exposure_timer(self, context, arg):
-    #    return
-    
+        def check(reaction, user):
+            if (user == context.author):
+                if (str(reaction.emoji) == "😍"):
+                    self.bot.update_entry(user, 'mention_on_listen', True)
+                    return True
+                elif (str(reaction.emoji) == "😭"):
+                    self.bot.update_entry(user, 'mention_on_listen', False)
+                    return True
+            return False
+
+        await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
+        await context.channel.send(embed=self.bot.embed_skeleton("Mentions set to: {}".format(self.bot.get_entry(context.author, 'mention_on_listen'))))
+
     # == DEBUG ==
     @commands.command()
     async def db_data(self, context):
         await context.channel.send(self.bot.data)
 
 def setup(bot):
-    bot.add_cog(Taylor_detection(bot))        
+    bot.add_cog(Music(bot))        

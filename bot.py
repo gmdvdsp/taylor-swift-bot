@@ -1,59 +1,42 @@
+import sqlite3
+
 import os
 import datetime as time
 
+import database
 import discord
 from discord.ext import commands
 # token: NTY5MjE1NDg2MDc2NjQ5NDg1.GkhadZ.Jn5r-8Qr3E-_OIC2wAIYqCF5ts3FnZDhQgn9fs
 
 AUTHOR_EMBED_URL = "https://i.imgur.com/6DSv0Su.jpg"
 RED = 0xFF0000
+# All the USER_COLUMNS associated with users; are created on bot-ready.
+USER_COLUMNS = ('id INTEGER PRIMARY KEY', 'username TEXT', 'messages_sent INTEGER')
 
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="ts ", intents=discord.Intents.all())
-        self.user_data = {}
-        self.seed_entries()
+        # Flag for on_ready, which can run multiple times.
+        self.firstRun = True
 
-    '''
-    In a practical environment, these are never being used.
-    @bot.command()
-    async def load(context, extension):
-        bot.load_extension(f'cogs.{extension}')
-
-    @bot.command()
-    async def unload(context, extension):
-        bot.unload_extension(f'cogs.{extension}')
-    '''
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print('Registered as {0.user}'.format(self))
+        if self.firstRun:
+            self.initialize_databases()
+            self.firstRun = False
     
-    def seed_entries(self):
-        def default_entries():
-            def_user_configs = {"mention_on_listen":True}
-            def_user_stats = {"cooldown":time.datetime(1,1,1,0,0), "listens":0, "configs":def_user_configs}
-            return def_user_stats
-
+    def initialize_databases(self):
+        database.create_table('users', USER_COLUMNS)
         for member in self.get_all_members():
-            if (not(member.id in self.user_data)):
-                self.user_data[member.id] = {}
-            self.user_data[member.id] = default_entries()
+            database.create_entry('users', (member.id, member.name, 0))
+        database.create_table('misc_vars', ('name text PRIMARY KEY', 'value text'))
 
     # == HELPERS == 
     def embed_skeleton(self, arg):
         embed = discord.Embed(description=arg, color=RED)
         embed.set_author(name="Taylor Swift", icon_url=AUTHOR_EMBED_URL)
         return embed
-
-    def update_entry(self, member, arg, val):
-        if (not(member.id in self.user_data)):
-            return
-        if (arg in self.user_data[member.id]):
-            self.user_data[member.id][arg] = val
-        elif (arg in self.user_data[member.id]['configs']):
-            self.user_data[member.id]['configs'][arg] = val
-
-    def get_entry(self, member, arg):
-        if (not(member.id in self.user_data)):
-            return
-        return self.user_data[member.id].get(arg, self.user_data[member.id]['configs'].get(arg, None))
         
 bot = Bot()
 
