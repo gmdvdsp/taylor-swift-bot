@@ -10,8 +10,10 @@ from discord.ext import commands
 
 AUTHOR_EMBED_URL = "https://i.imgur.com/6DSv0Su.jpg"
 RED = 0xFF0000
-# All the USER_COLUMNS associated with users; are created on bot-ready.
-USER_COLUMNS = ('id INTEGER PRIMARY KEY', 'username TEXT', 'messages_sent INTEGER')
+
+TABLENAME_MISC_VARS = 'misc_vars'
+
+COLUMNS_USER = ('id INTEGER PRIMARY KEY', 'username TEXT', 'messages_sent INTEGER')
 
 class Bot(commands.Bot):
     def __init__(self):
@@ -27,10 +29,9 @@ class Bot(commands.Bot):
             self.firstRun = False
     
     def initialize_databases(self):
-        database.create_table('users', USER_COLUMNS)
+        database.create_table('users', COLUMNS_USER)
         for member in self.get_all_members():
             database.create_entry('users', (member.id, member.name, 0))
-        database.create_table('misc_vars', ('name text PRIMARY KEY', 'value text'))
 
     # == HELPERS == 
     def embed_skeleton(self, arg):
@@ -39,6 +40,7 @@ class Bot(commands.Bot):
         return embed
         
 bot = Bot()
+database.create_table('misc_vars', ('name text PRIMARY KEY', 'value text'))
 
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):

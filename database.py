@@ -33,9 +33,10 @@ def get_entry(table, column, row, row_value):
 
 def get_all(table):
     ret = c.execute("""SELECT *
-                    FROM ?""", (table,))
+                    FROM {}""".format(table))
     ret = ret.fetchall()
     return ret
 
-# async def delete_entry(id, column):
-#     #
+def delete_entry(table, row, row_value):
+    c.execute("""DELETE FROM {}
+                WHERE {} = ?""".format(table, row), (row_value,))
