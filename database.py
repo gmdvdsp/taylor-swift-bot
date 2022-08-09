@@ -11,7 +11,7 @@ def create_table(name, columns):
                 ({}
                 )""".format(name, COMMA.join(columns)))
     conn.commit()
-                
+            
 def create_entry(table, columns):
     params = ('?' * len(columns))
     c.execute("""INSERT OR IGNORE INTO {} 
@@ -31,6 +31,13 @@ def get_entry(table, column, row, row_value):
     ret = ret.fetchone()
     return ret[0]
 
+def get_random_entry(table, column):
+    ret = c.execute("""SELECT {}
+                    FROM {}
+                    ORDER BY RANDOM()""".format(column, table))
+    ret = ret.fetchone()
+    return ret[0]
+
 def get_all(table):
     ret = c.execute("""SELECT *
                     FROM {}""".format(table))
@@ -40,3 +47,9 @@ def get_all(table):
 def delete_entry(table, row, row_value):
     c.execute("""DELETE FROM {}
                 WHERE {} = ?""".format(table, row), (row_value,))
+    conn.commit()
+
+# Only for debugging, comment out when unneeded:
+def delete_all(table):
+    c.execute("""DELETE FROM {}""".format(table))
+    conn.commit()

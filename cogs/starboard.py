@@ -8,8 +8,8 @@ from discord.ext import commands
 TABLENAME_CONFIG = 'starboard_config'
 TABLENAME_STARRED_MESSAGES = 'starboard_starred_messages'
 
-COLUMNS_STARRED_MESSAGES = ('message_id integer PRIMARY KEY', 'channel_id integer')
-COLUMNS_CONFIG = ('config PRIMARY KEY', 'channel_id INTEGER', 'reactions_until_add INTEGER', 'emoji TEXT', 'reactions_until_condense INTEGER')
+COLUMNS_STARRED_MESSAGES = ('message_id INTEGER PRIMARY KEY', 'channel_id INTEGER')
+COLUMNS_CONFIG = ('config INTEGER PRIMARY KEY', 'channel_id INTEGER', 'reactions_until_add INTEGER', 'emoji TEXT', 'reactions_until_condense INTEGER')
 
 DEFAULT_CONFIG = (0, -1, 1, "✨", 3)
 
@@ -131,11 +131,11 @@ class Starboard(commands.Cog):
             if (payload.member == context.author):
                 nonlocal updated_emoji
                 updated_emoji = str(payload.emoji)
+                database.update_entry(TABLENAME_CONFIG, 'emoji', 'config', 0, updated_emoji)
                 return True
             return False            
 
         await self.bot.wait_for('raw_reaction_add', timeout=60.0, check=check)
-        database.update_entry(TABLENAME_CONFIG, 'emoji', 'config', 0, updated_emoji)
         await context.channel.send(embed=self.bot.embed_skeleton("I've changed the starboard reaction emoji to: {}".format(updated_emoji)))
 
     async def send_starboard(self, original_message, original_channel):
@@ -143,14 +143,7 @@ class Starboard(commands.Cog):
         star_channel = self.bot.get_channel(database.get_entry(TABLENAME_CONFIG, 'channel_id', 'config', 0))
         emoji = database.get_entry(TABLENAME_CONFIG, 'emoji', 'config', 0)
 
-        if (original_message.attachments):
-            if (original_message.attachments[0].content_type.startswith("image")):
-                embed.set_image(url=original_message.attachments[0].url)
-            else:
-                embed.description = original_message.attachments[0].filename
-        if (original_message.embeds):
-            if (original_message.embeds[0].video == discord.Embed.Empty):   
-                embed = original_message.embeds[0]
+        await self.format_attachments(original_message, embed)
 
         embed.set_author(name=str(original_message.author), icon_url=original_message.author.avatar_url)
         embed.add_field(name=u'\u200b', value="[**Click here to jump to this message!**]({})".format(original_message.jump_url + "\n"))
@@ -160,6 +153,16 @@ class Starboard(commands.Cog):
         database.create_entry(TABLENAME_STARRED_MESSAGES, (sent.id, sent.channel.id))
         await sent.add_reaction(emoji)
         await self.update_starred_messages()
+
+    async def format_attachments(self, message, embed):
+        if (message.attachments):
+            if ((message.attachments[0].content_type != None) and (message.attachments[0].content_type.startswith("image"))):
+                embed.set_image(url=message.attachments[0].url)
+            else:
+                embed.description = message.attachments[0].filename
+        if (message.embeds):
+            if (message.embeds[0].video == discord.Embed.Empty):   
+                embed = message.embeds[0]
 
     async def update_starred_messages(self):
         stars_until_condense = database.get_entry(TABLENAME_CONFIG, 'reactions_until_condense', 'config', 0)
