@@ -19,30 +19,7 @@ class Misc(commands.Cog):
         self.bot.command_prefix = arg
         await context.channel.send(embed=self.bot.embed_skeleton(("I've changed the global command prefix to: {}".format(arg))))
 
-    @commands.command()
-    async def mention(self, context):
-        embed = await context.channel.send(embed=self.bot.embed_skeleton(("Should I mention you when I see you listening to my songs?")))
-        await embed.add_reaction("😍")
-        await embed.add_reaction("😭")
-
-        def check(reaction, user):
-            if (user == context.author):
-                if (str(reaction.emoji) == "😍"):
-                    self.bot.update_entry(user, 'mention_on_listen', True)
-                    return True
-                elif (str(reaction.emoji) == "😭"):
-                    self.bot.update_entry(user, 'mention_on_listen', False)
-                    return True
-            return False
-
-        await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
-        await context.channel.send(embed=self.bot.embed_skeleton("Mentions set to: {}".format(self.bot.get_entry(context.author, 'mention_on_listen'))))
-
     # == DEBUG ==
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print('Registered as {0.user}'.format(self.bot))
-
     @commands.command()
     async def db_printdata(self, context):
         msg = pprint.pformat(self.bot.data)

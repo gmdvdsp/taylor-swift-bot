@@ -1,60 +1,58 @@
 import os
 import datetime as time
 
+import database
 import discord
 from discord.ext import commands
 
 AUTHOR_EMBED_URL = "https://i.imgur.com/6DSv0Su.jpg"
 RED = 0xFF0000
 
+TABLENAME_USERS = 'users'
+TABLENAME_MISC_VARS = 'misc_vars'
+TABLENAME_WORDLE_EMOJIS = 'wordle_letter_emojis'
+
+COLUMNS_USER = ('user_id INTEGER PRIMARY KEY',
+                'username TEXT',
+                'wordle_current_game TEXT'
+                )
+COLUMNS_WORDLE_EMOJIS = ('id INTEGER PRIMARY KEY', 'name TEXT')
+EMOJI_SERVER_IDS = [582652440642584647, 994102946163871816]
+
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="ts ", intents=discord.Intents.all())
-        self.user_data = {}
-        self.seed_entries()
+        # Flag for on_ready, which can run multiple times.
+        self.firstRun = True
 
-    '''
-    In a practical environment, these are never being used.
-    @bot.command()
-    async def load(context, extension):
-        bot.load_extension(f'cogs.{extension}')
-
-    @bot.command()
-    async def unload(context, extension):
-        bot.unload_extension(f'cogs.{extension}')
-    '''
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if self.firstRun:
+            self.initialize_databases()
+            print('Hooked onto database.')
+            self.firstRun = False
     
-    def seed_entries(self):
-        def default_entries():
-            def_user_configs = {"mention_on_listen":True}
-            def_user_stats = {"cooldown":time.datetime(1,1,1,0,0), "listens":0, "configs":def_user_configs}
-            return def_user_stats
-
+    def initialize_databases(self):
+        database.delete_entry(TABLENAME_USERS, 'user_id', 979850109955227721)
+        database.create_table(TABLENAME_USERS, COLUMNS_USER)
         for member in self.get_all_members():
-            if (not(member.id in self.user_data)):
-                self.user_data[member.id] = {}
-            self.user_data[member.id] = default_entries()
+            if (not(member.bot)):
+                database.create_entry(TABLENAME_USERS, (member.id, member.name, None))
+
+        # Icky that this initializes here and not in wordle.py, change
+        database.create_table(TABLENAME_WORDLE_EMOJIS, COLUMNS_WORDLE_EMOJIS)
+        for guild_id in EMOJI_SERVER_IDS:
+            for emoji in self.get_guild(guild_id).emojis:
+                database.create_entry(TABLENAME_WORDLE_EMOJIS, (emoji.id, emoji.name))
 
     # == HELPERS == 
     def embed_skeleton(self, arg):
         embed = discord.Embed(description=arg, color=RED)
         embed.set_author(name="Taylor Swift", icon_url=AUTHOR_EMBED_URL)
         return embed
-
-    def update_entry(self, member, arg, val):
-        if (not(member.id in self.user_data)):
-            return
-        if (arg in self.user_data[member.id]):
-            self.user_data[member.id][arg] = val
-        elif (arg in self.user_data[member.id]['configs']):
-            self.user_data[member.id]['configs'][arg] = val
-
-    def get_entry(self, member, arg):
-        if (not(member.id in self.user_data)):
-            return
-        return self.user_data[member.id].get(arg, self.user_data[member.id]['configs'].get(arg, None))
         
 bot = Bot()
+database.create_table('misc_vars', ('name text PRIMARY KEY', 'value text'))
 
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
